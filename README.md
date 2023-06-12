@@ -1,4 +1,4 @@
-# ProiectWebSemantic
+# README
 
 Fisierul date_proiect.json il pui intr-un folder (de ex: C:/bdjson)
 Trebuie intr-un Cmd sa navighezi la path-ul ala (ex cu comanda: "cd C:/bdjson")
