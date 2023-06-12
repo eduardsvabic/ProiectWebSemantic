@@ -1,0 +1,130 @@
+<html>
+
+<head>
+<title>TEST</title>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script>
+	function requestStepOne()
+	{
+		$.get("scriptproxy.php?callback=stepOneFunction", processStepOneResponse);
+	}
+	
+	function processStepOneResponse(response)
+	{
+		var n = response.Games.length;
+		for(var i = 0; i < n; i++)
+			$("#scrapingTable").append("<tr><td>" + response.Games[i].id + "</td> <td>" + response.Games[i].Title + "</td> <td>" + response.Games[i].Price + "</td> </tr>");
+	}
+	
+	function requestStepTwo()
+	{
+		let arrData = [];
+		let formData = {title : $("#titleBoxgql").val(), price : $("#priceBoxgql").val()};
+		arrData.push(formData);
+		$("#scrapingTable tr").each(function(){
+			let currentRow = $(this);
+			let id_value = currentRow.find("td").eq(0).text();
+			let title_value = currentRow.find("td").eq(1).text();
+			let price_value = currentRow.find("td").eq(2).text();
+			if(id_value)
+			{
+				price_value = price_value.slice(0, -1);
+				let obj = {
+					title : title_value,
+					price : price_value
+				};
+				arrData.push(obj);
+	
+			}
+		});
+		console.log(JSON.stringify(arrData));
+		config = {
+			url : "scriptproxy.php?callback=stepTwoFunction",
+			type : "POST",
+			data : JSON.stringify(arrData),
+			contentType : "application/json",
+			success : processStepTwoResponse
+		};		
+		$.ajax(config); 
+		
+	}
+	
+	function processStepTwoResponse(response)
+	{
+		console.log(response);
+		var n = response.data.allGames.length;
+		for(var i = 0; i < n; i++)
+		{
+			var game = response.data.allGames[i];
+			$("#gqlTable").append("<tr><td>"+ game.id +"</td><td>"+ game.title +"</td><td>"+ game.price +"\u20AC</td></tr>");
+		}
+	}
+	
+	function requestStepThree()
+	{
+		let obj = {title : $("#deleteBoxgql").val()};
+		let config = {
+			url : "scriptproxy.php?callback=stepThreeFunction",
+			type : "POST",
+			data : JSON.stringify(obj),
+			contentType : "application/json",
+			success : processStepThreeResponse
+		};
+		$.ajax(config);
+	}
+	
+	function processStepThreeResponse(response)
+	{
+		var n = response.data.allGames.length;
+		for(var i = 0; i < n; i++)
+		{
+			var game = response.data.allGames[i];
+			$("#deletedEntrygqlTable").append("<tr><td>"+ game.id +"</td><td>"+ game.title +"</td><td>"+ game.price +"\u20AC</td></tr>");
+		}
+	}
+	
+</script>
+</head>
+
+<body>
+	<div align="center">
+		<h3>Step 1. Web Scraping</h3>
+		<input type="button" value = "Perform Scraping" onclick="requestStepOne()"/><br><br>
+
+		<table id="scrapingTable">
+				<th>ID</th> <th>Game Title</th> <th>Price</th>
+		</table>
+		<br><br>
+		
+		<h3>Step 2. GraphQL Server</h3>
+		<div>
+			Title<input type="text" id="titleBoxgql" value="God Of War"/><br>
+			Price<input type="number" step="0.01" id="priceBoxgql" value="59.99"/>
+		</div><br>
+		<div>
+			<input type= "button" value="Get Data and Insert GraphQL Entry" onclick="requestStepTwo()"/><br><br>
+			<table id="gqlTable">
+			<tr>
+				<th>ID</th> <th>Game Title</th> <th>Price</th>
+			</tr>
+		</table>
+		</div>
+		<br><br>
+		<h3>Step 3. Delete From GraphQL Server</h3> 
+		<input type= "button" value="Delete Data from GraphQL" onclick="requestStepThree()"/><br><br>
+		<div>
+			Title<input type="text" id="deleteBoxgql" value="DOOM"/><br><br>
+			<table id="deletedEntrygqlTable">
+			<tr>
+				<th>ID</th> <th>Game Title</th> <th>Price</th>
+			</tr>
+		</div>
+	</div>
+</body>
+
+</html>
